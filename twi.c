@@ -27,37 +27,37 @@ BYTE* twi_wait()
    return &transmission.buffer[1];
 }
 //-----------------------------------------------------------------------------
-void twi_start()
+__inline void twi_start()
 {
     TWCR = _bit(TWINT) | _bit(TWEN) | _bit(TWIE) | _bit(TWSTA);
 }
 //-----------------------------------------------------------------------------
-void twi_stop()
+__inline void twi_stop()
 {
     TWCR = _bit(TWINT) | _bit(TWEN) | _bit(TWSTO);
 }
 //-----------------------------------------------------------------------------
-void twi_ack()
+__inline void twi_ack()
 {
     TWCR = _bit(TWINT) | _bit(TWEN) | _bit(TWIE) | _bit(TWEA);
 }
 //-----------------------------------------------------------------------------
-void twi_nack()
+__inline void twi_nack()
 {
     TWCR = _bit(TWINT) | _bit(TWEN) | _bit(TWIE);
 }
 //-----------------------------------------------------------------------------
-void twi_send(BYTE data)
+__inline void twi_send(BYTE data)
 {
     TWDR = data;
 }
 //-----------------------------------------------------------------------------
-void twi_recv()
+__inline void twi_recv()
 {
     transmission.buffer[transmission.index++] = TWDR;
 }
 //-----------------------------------------------------------------------------
-void twi_reply()
+__inline void twi_reply()
 {
     if(transmission.index < (transmission.size - 1))
     {
@@ -69,7 +69,7 @@ void twi_reply()
     }
 }
 //-----------------------------------------------------------------------------
-void twi_done()
+__inline void twi_done()
 {
     BYTE address = transmission.buffer[0] >> 1;
     BYTE* data = &transmission.buffer[1];
