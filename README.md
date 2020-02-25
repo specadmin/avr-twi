@@ -1,51 +1,77 @@
 # avr-twi
 
-Nonblocking TWI/I2C master driver for Atmel AVR
+Universal TWI/I2C driver for Atmel AVR
+
+## Adding to your project
+
+Run the following command in your project's root directory
+
+```
+git submodule add https://github.com/specadmin/avr-twi lib/avr-twi
+```
+
+Include the header file
+
+```
+#include "lib/twi.h"
+```
+
 
 ## API
 
-###### `void twi_init()`
 
-Initializes the driver.  Should be called once before calling any other TWI functions.
+###### `twi_init()` or `twi_init(struct twi_slave_config* config)`
 
-###### `void twi_write(uint8_t address, uint8_t* data, uint8_t length, void (*callback)(uint8_t address, uint8_t *data))`
+Initilize and configure TWI driver.  Should be called before calling any other TWI functions. Could be called again to reconfigure slave, when needed.
 
-Writes data to the given address.
+* `config` -- a pointer to a slave configuration structure. See [twi.h](https://github.com/specadmin/avr-twi/blob/master/twi.h#L39) and [driver usage example](https://github.com/specadmin/avr-twi-example) for details. The TWI will not become slave, if this parameter is NULL or ommited.
 
-* `address` - TWI slave address
-* `data` - pointer to data buffer
-* `length` - numer of bytes to write from the given data buffer
-* `callback` - function pointer to callback (called when write completes)
+-------------------------------------------------------------------------------
 
-The callback should accept two arguments:
+###### `BYTE twi_send(BYTE address, size_t size, BYTE* data, void (*callback)(BYTE result) = NULL)`
 
-* `address` - TWI slave address
-* `data` - pointer to data buffer that was written
+Sends a packet via TWI as a master.
 
-###### `void twi_read(uint8_t address, uint8_t length, void (*callback)(uint8_t address, uint8_t *data))`
+* `address` -- a destination slave address or 0 for a broadcast packet;
+* `data` -- a pointer to data buffer;
+* `size` -- a numer of bytes to send from the given data buffer, should be less or equal to TWI_MASTER_BUFFER_SIZE (see Definitions for details);
+* `callback` -- a function pointer to callback (called when transmission completes).
 
-Reads data from the given address.
+The callback function should be void and accept only one argument:
 
-* `address` - TWI slave address
-* `length` - number of bytes to read
-* `callback` - function pointer to callback (called when read is complete)
+* `result` -- transmission result (error code), that could be one of the follows:
 
-The callback should accept two arguments:
+  * `TWI_ERR_OK` -- the transmission was successfull, whole the data were sent;
+  * `TWI_ERR_NOT_FOUND` -- slave address not found;
+  * `TWI_ERR_REJECTED` -- slave was unable to receive data;
+  * `TWI_ERR_ABORTED` -- slave has aborted the reception;
+  * `TWI_ERR_UNKNOWN` -- uknown error or bus state.
 
-* `address` - TWI slave address
-* `data` - pointer to data buffer that was written
+If callback is NULL or omitted, than twi_send() will proceed in a **blocking mode** -- it will **NOT** return until the whole data packet will be transmited or any error will happend.
 
-###### `uint8_t *twi_wait()`
+In **non-blocking mode** `twi_send()` could returns one of the following call result (error code):
 
-This will block until the current operation (read or write) completes or return immediately if there is no operation in progress.  It returns a pointer to the internal TWI buffer.  This is useful for performing initialization read/writes where asynchrony may be unnecessary.  Call it between read/write calls.
+* `TWI_ERR_OK` -- the call was accepted successfully, the transmission is being started;
+* `TWI_ERR_BUSY` -- the driver is busy by executing a previous twi_send() or twi_receive() call;
+* `TWI_ERR_BAD_PARAMETER` -- bad parameter specifiend in the function call.
 
-    twi_write(address, &data, 2, NULL);
-    twi_wait();
-    twi_read(address, 2, NULL);
-    uint8_t *result = twi_wait();
+In **blocking mode** `twi_send()` could returns one of the following call result (error code):
+
+* `TWI_ERR_OK` -- the transmission was successfull, whole the data were sent;
+* `TWI_ERR_BUSY` -- the driver is busy by executing a previous twi_send() or twi_receive() call;
+* `TWI_ERR_BAD_PARAMETER` -- bad parameter specifiend in the function call;
+* `TWI_ERR_NOT_FOUND` -- slave address not found;
+* `TWI_ERR_REJECTED` -- slave was unable to receive data;
+* `TWI_ERR_ABORTED` -- slave has aborted the reception;
+* `TWI_ERR_UNKNOWN` -- uknown error or bus state.
+
+
+Please remember, that callback function should be as fast as possible. Since it is called in the interrupt routine and the TWI bus would **NOT** be freed until this function is being executed. A slow running function could cause data hold and data lost in your TWI network.
+
+-------------------------------------------------------------------------------
 
 ## Definitions
 
-* `F_CPU` - you should define this before including this library
-* `TWI_FREQ` - defaults to 100kHz if left undefined
-* `TWI_BUFFER_LENGTH` - defaults to 32 if left undefined
+* `F_CPU` -- CPU frequency, required
+* `TWI_MASTER_FREQ` -- TWI baudrate, when being a master. Defaults to 200 kbit/s, if left undefined.
+* `TWI_MASTER_BUFFER_SIZE` -- Maximum transmission buffer size, allocated in the RAM. Defaults to 32, if left undefined.
