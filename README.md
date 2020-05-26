@@ -1,8 +1,25 @@
 # avr-twi
 
-Universal TWI/I2C driver for Atmel AVR
+Universal TWI/I2C driver for Atmel AVR. Supports blocking and non-blocking modes.
 
-## Adding to your project
+
+
+## Dependencies ##
+
+* [avr-misc library](https://github.com/specadmin/avr-misc)
+
+
+
+## Requirements ##
+
+* [AVR MCU](https://www.microchip.com/design-centers/8-bit/avr-mcus)
+* [GNU AVR C compiller (avr-gcc)](https://gcc.gnu.org/wiki/avr-gcc)
+* [AVR Libc library](https://nongnu.org/avr-libc)
+* All libraries' and drivers' folders should be placed in the same directory.
+
+
+
+## Adding to your project ##
 
 Run the following command in your project's root directory
 
