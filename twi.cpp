@@ -228,8 +228,8 @@ ISR(TWI_vect)
         else
         {
             // complete the transmission session
-            twi_return(TWI_ERR_OK);
             twi_stop();
+            twi_return(TWI_ERR_OK);
         }
         break;
     case TW_MR_SLA_ACK:
@@ -269,18 +269,19 @@ ISR(TWI_vect)
         }
         else
         {
-            twi_return(TWI_ERR_NOT_FOUND);
             twi_stop();
+            twi_return(TWI_ERR_NOT_FOUND);
         }
         break;
     case TW_MR_DATA_NACK:
         twi_recv();
         // the slave does not confirmed the last transmited byte,
         // this means that the slave has completed the transmition
-        twi_return(TWI_ERR_OK);
         twi_stop();
+        twi_return(TWI_ERR_OK);
         break;
     case TW_MT_DATA_NACK:
+        twi_stop();
         if(master.index > 1)
         {
             // Some data bytes were sent successfully, but the
@@ -294,7 +295,6 @@ ISR(TWI_vect)
             // that the slave has rejected the call.
             twi_return(TWI_ERR_REJECTED);
         }
-        twi_stop();
         break;
 
     //////////////////
@@ -391,8 +391,8 @@ ISR(TWI_vect)
     case TW_NO_INFO:
     case TW_BUS_ERROR:
     default:
-        twi_return(TWI_ERR_UNKNOWN);
         twi_reset();
+        twi_return(TWI_ERR_UNKNOWN);
     }
 }
 //-----------------------------------------------------------------------------
