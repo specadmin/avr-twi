@@ -177,8 +177,6 @@ __inline void twi_return(BYTE result)
     if(master.callback)
     {
         master.callback(result);
-        // reset callback pointer to prevent any more calls
-        master.callback = NULL;
     }
     else
     {
